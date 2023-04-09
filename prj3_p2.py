@@ -163,17 +163,17 @@ def gen_map_2(show_map):
     cv2.rectangle(map_area, (10,10), (590,190), (0,0,0),-1)
 
     #Rect 1
-    cv2.rectangle(map_area, (150,75),(165,200),(255,255,255),10)
+    cv2.rectangle(map_area, (150,75),(165,200),(255,255,255),20)
     cv2.rectangle(map_area, (150,75),(165,200),(255,0,0),5)
     cv2.rectangle(map_area, (150,75),(165,200),(0,255,0),-1)
 
     #Rect 
-    cv2.rectangle(map_area, (250,0),(265,125),(255,255,255),10)
+    cv2.rectangle(map_area, (250,0),(265,125),(255,255,255),20)
     cv2.rectangle(map_area, (250,0),(265,125),(255,0,0),5)
     cv2.rectangle(map_area, (250,0),(265,125),(0,255,0),-1)
 
     #Circle
-    cv2.circle(map_area, (400, 110), 50, (255,255,255), 10)
+    cv2.circle(map_area, (400, 110), 50, (255,255,255), 20)
     cv2.circle(map_area, (400, 110), 50, (255,0,0), 5)
     cv2.circle(map_area, (400, 110), 50, (0,255,0), -1)
 
@@ -230,25 +230,36 @@ def a_star():
 
     #Get initial state coordinates
     map_area = gen_map_2(False)        #Creates map area and display it
-    initial_state_x = 50#int(input('Please enter x coordinate of the inital state: '))
-    initial_state_y = 100#int(input('Please enter y coordinate of the inital state: '))
 
-    u_l = float(input("Please enter the left velocity:"))
-    u_r = float(input("Please enter the right velocity:"))
-    initial_state_theta = -1*float(input('Please enter the initial orientation of the robot: ')) + 90
-    action_states = np.array([[u_l,u_l], [u_l,0], [0,u_l], [u_l,u_r], [u_r,u_l], [u_r,u_r], [0,u_r], [u_r,0]])
+    correct_coordinates = False
 
-    map_area = cv2.circle(map_area, (initial_state_x, initial_state_y), 5, (255, 0,255), 2)
-    #Get goal state coordinates
-    goal_state_x = 550#int(input('Please enter x coordinate of the goal state: '))
-    goal_state_y = 100#int(input('Please enter y coordinate of the goal state: '))
+    while correct_coordinates is False:
+        initial_state_x = int(input('Please enter x coordinate of the inital state: '))
+        initial_state_y = int(input('Please enter y coordinate of the inital state: '))
+        initial_state_theta = -1*float(input('Please enter the initial orientation of the robot: ')) + 90 
 
-    initial_state = [initial_state_y, initial_state_x]
-    goal_state = [goal_state_y, goal_state_x]
+        u_l = float(input("Please enter the first velocity:"))
+        u_r = float(input("Please enter the second velocity:"))
+    
+        action_states = np.array([[u_l,u_l], [u_l,0], [0,u_l], [u_l,u_r], [u_r,u_l], [u_r,u_r], [0,u_r], [u_r,0]])
+
+        #Get goal state coordinates
+        goal_state_x = int(input('Please enter x coordinate of the goal state: '))
+        goal_state_y = int(input('Please enter y coordinate of the goal state: '))
+
+        initial_state = [initial_state_y, initial_state_x]
+        goal_state = [goal_state_y, goal_state_x]
+
+       
+        
+        if np.array_equal(map_area[initial_state_y][initial_state_x],map_area[25][25]) and np.array_equal(map_area[goal_state_y][goal_state_x],map_area[25][25]):
+            correct_coordinates = True
+        else:    
+            print('Incorrect coordinates, please try again')
+    map_area = cv2.circle(map_area, (initial_state_x, initial_state_y), 5, (0, 0, 255), 2)
+    map_area = cv2.circle(map_area, (goal_state_x, goal_state_y), 5, (0, 255, 0), 2)
 
 
-    # if np.array_equal(map_area[initial_state],[0,0,0]) or np.array_equal(map_area[goal_state],[0,0,0]):
-    #     print('Incorrect coordinates, please try again')
     
     root_node = bot_node(0, 0, initial_state, None, initial_state_theta)
     root_pair = (0, 0)    #total_cost, c2c, own location, parent_loc
@@ -264,7 +275,7 @@ def a_star():
         curr_node = created_nodes[curr_node_id]
         curr_node_loc = curr_node.node_loc
         # prev_node_id = curr_node.parent_id
-        cv2.imshow('Dijkstra_Visualiser', cv2.flip(map_area, 0))
+        cv2.imshow('A Star Visualiser', cv2.flip(map_area, 0))
         if cv2.waitKey(1) & 0XFF == ord('q'):cv2.destroyAllWindows()
 
         closed_list.append(curr_node_loc)
@@ -275,7 +286,12 @@ def a_star():
             # check = input('Ready for backtrack?')
             map_area, accumulator = backtrack(map_area, curr_node_id)
             node_id += 1
-            cv2.imshow('Dijkstra_Visualiser', cv2.flip(map_area, 0))
+            for i in reversed(accumulator):
+                print(i)
+                show_img = map_area.copy()
+                cv2.circle(show_img,(i[0], i[1]), 5, (255,0,255), 2)
+                cv2.imshow('A Star Visualiser', cv2.flip(show_img, 0))
+                if cv2.waitKey(10) & 0XFF == ord('q'):cv2.destroyAllWindows()
             if cv2.waitKey(0) & 0XFF == ord('q'):cv2.destroyAllWindows()
             # cv2.imwrite('img_accumulator/'+str(node_id)+'.jpg',map_area)
 
@@ -303,11 +319,11 @@ def a_star():
                 open_list.put(child_pair)
                 map_area[int(child_loc[0]), int(child_loc[1])] = [150,200,255]                    #change to plot curve
 
-    
-    with open('path_point.txt', 'w') as f2:
+    with open('path_points.txt', 'w') as f2:
         for i in reversed(accumulator):
 
-            f2.write(str(i[0])+', '+str(i[1]))
+            curr_loc = np.divide(np.subtract(i, [initial_state[1], initial_state[0]]), 100)
+            f2.write(str(curr_loc[0])+', '+str(curr_loc[1]))
             f2.write('\n')
 ################################################################################
 
