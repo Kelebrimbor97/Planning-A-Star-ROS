@@ -19,7 +19,7 @@ tf.transformations
 time
 
 For running the source code, user needs to just run the python file named "prj3_p2.py" in the Part1 folder.
-This code will ask for 2 RPMs as input ( for e.g. 100, 200) and then give the visualization for the generated path.
+This code will ask for the initial state and orientation, goal state amd 2 RPMs as input ( for e.g. 100, 200) and then give the visualization for the generated path. Before visualization, it will check the validity of the initial and goal state, and will prompt user to give inputs again untill correct inputs are provided.
 
 For running the simulation, user needs to have turtlebot installed as the launch file used the 'turtlebot_description' package.
 Then open a terminal and launch the turtlebot3_map_world.launch file using roslaunch command.
